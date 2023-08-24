@@ -1,0 +1,1033 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="czjoyit@qq.com">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="@清华大学操作系统基础知识OS功能 硬件抽象 硬件多路复用 隔离 共享 安全 高性能 并发  内核区别宏内核 把功能比文件系统，内存管理等集中在内核空间，这样子可以获得更好的性能（减少内核用户空间切换次数），但是同时也会导致bug，比较难维护，常见的XV6就是宏内核  微内核 在内核中只维最基本的功能，比如IPC，文件系统放到用户空间，但是如何获得高性能是一个问题，用户程序&gt;IPC&gt;F">
+<meta property="og:type" content="article">
+<meta property="og:title" content="清华大学操作系统">
+<meta property="og:url" content="http://example.com/2023/08/24/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/index.html">
+<meta property="og:site_name" content="大反派大星的博客">
+<meta property="og:description" content="@清华大学操作系统基础知识OS功能 硬件抽象 硬件多路复用 隔离 共享 安全 高性能 并发  内核区别宏内核 把功能比文件系统，内存管理等集中在内核空间，这样子可以获得更好的性能（减少内核用户空间切换次数），但是同时也会导致bug，比较难维护，常见的XV6就是宏内核  微内核 在内核中只维最基本的功能，比如IPC，文件系统放到用户空间，但是如何获得高性能是一个问题，用户程序&gt;IPC&gt;F">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230804165258732.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230804165636678.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230804165904243.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230804170502490.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230804171728933.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230804173117563.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230805111441288.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230805111900425.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230805112344620.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230805120618255.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230805144410752.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230805150006286.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230806110311583.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230806110430762.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230806111005583.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230806111108173.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230806111605711.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230806112203484.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230806112944667.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230806113050691.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230806113144685.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230806113444551.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230806113436558.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230806123351956.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230806123408378.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230806123829471.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230806124608162.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230808101310155.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230808102128784.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230808102325865.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230808102546156.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230808102655166.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230808105411639.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230808111239947.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230808112548674.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230808112738360.png">
+<meta property="og:image" content="http://example.com/post_imgs/MIT6.S081/image-20230809110127669.png">
+<meta property="og:image" content="http://example.com/post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/image-20230810112725643.png">
+<meta property="og:image" content="http://example.com/post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/image-20230810122221456.png">
+<meta property="og:image" content="http://example.com/post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/image-20230810123540258.png">
+<meta property="og:image" content="http://example.com/post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/image-20230811163314679.png">
+<meta property="og:image" content="http://example.com/post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%9B%AE%E5%BD%95%E9%A1%B9%E5%92%8C%E7%B4%A2%E5%BC%95%E5%85%B3%E7%B3%BB%E5%9B%BE.png">
+<meta property="og:image" content="http://example.com/post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/image-20230811163448695.png">
+<meta property="og:image" content="http://example.com/post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/image-20230811163627471.png">
+<meta property="og:image" content="http://example.com/post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/1541c881598f554920355f0a3c5780fd.png">
+<meta property="og:image" content="http://example.com/post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/image-20230811163750518.png">
+<meta property="og:image" content="http://example.com/post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/CPU%20%E7%A1%AC%E4%BB%B6%E6%80%BB%E7%BA%BF%E5%9B%BE.png">
+<meta property="og:image" content="http://example.com/post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/image-20230811164322187.png">
+<meta property="og:image" content="http://example.com/post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/image-20230811164756208.png">
+<meta property="og:image" content="http://example.com/post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/DRM%20I_O%20%E8%BF%87%E7%A8%8B.png">
+<meta property="og:image" content="https://cdn.xiaolincoding.com/gh/xiaolincoder/ImageHost2/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E9%9B%B6%E6%8B%B7%E8%B4%9D/%E4%BC%A0%E7%BB%9F%E6%96%87%E4%BB%B6%E4%BC%A0%E8%BE%93.png">
+<meta property="og:image" content="http://example.com/post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/senfile-%E9%9B%B6%E6%8B%B7%E8%B4%9D.png">
+<meta property="og:image" content="http://example.com/post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/image-20230814095919616.png">
+<meta property="og:image" content="http://example.com/post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/image-20230814100220802.png">
+<meta property="og:image" content="http://example.com/post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/image-20230814100518621.png">
+<meta property="og:image" content="http://example.com/post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/epoll.png">
+<meta property="og:image" content="http://example.com/post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/image-20230814101355270.png">
+<meta property="article:published_time" content="2023-08-24T02:40:35.000Z">
+<meta property="article:modified_time" content="2023-08-24T02:44:03.549Z">
+<meta property="article:author" content="czjoyit@qq.com">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/post_imgs/MIT6.S081/image-20230804165258732.png">
+  
+  
+  
+  <title>清华大学操作系统 - 大反派大星的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.4","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>大反派大星</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg/2.jpeg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="清华大学操作系统"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-08-24 10:40" pubdate>
+          2023年8月24日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          35 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">清华大学操作系统</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="清华大学操作系统"><a href="#清华大学操作系统" class="headerlink" title="@清华大学操作系统"></a>@清华大学操作系统</h1><h3 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h3><h5 id="OS功能"><a href="#OS功能" class="headerlink" title="OS功能"></a>OS功能</h5><ul>
+<li>硬件抽象</li>
+<li>硬件多路复用</li>
+<li>隔离</li>
+<li>共享</li>
+<li>安全</li>
+<li>高性能</li>
+<li>并发</li>
+</ul>
+<h5 id="内核区别"><a href="#内核区别" class="headerlink" title="内核区别"></a>内核区别</h5><h6 id="宏内核"><a href="#宏内核" class="headerlink" title="宏内核"></a>宏内核</h6><ul>
+<li>把功能比文件系统，内存管理等集中在内核空间，这样子可以获得更好的性能（减少内核用户空间切换次数），但是同时也会导致bug，比较难维护，常见的XV6就是宏内核</li>
+</ul>
+<h6 id="微内核"><a href="#微内核" class="headerlink" title="微内核"></a>微内核</h6><ul>
+<li>在内核中只维最基本的功能，比如IPC，文件系统放到用户空间，但是如何获得高性能是一个问题，用户程序&gt;IPC&gt;FS;FS结果&gt;IPC&gt;用户程序；这样子相比之下，微内核实现进程间交互就多了一次的内核空间转换</li>
+</ul>
+<h5 id="系统调用"><a href="#系统调用" class="headerlink" title="系统调用"></a>系统调用</h5><ul>
+<li>ls程序首先执行ecall，加上参数，控制权转移到内核，然后经过内核中的systemcall，去调用内核中的ls程序，最终完成系统调用。在内核执行指令的整个过程，内核可以随时监控指令的运行，确保指令的不合法等</li>
+<li>系统调用可以看作是内核空间和用户空间之间的通信机制</li>
+</ul>
+<h5 id="OS启动过程"><a href="#OS启动过程" class="headerlink" title="OS启动过程"></a>OS启动过程</h5><p><img src="/../post_imgs/MIT6.S081/image-20230804165258732.png" srcset="/img/loading.gif" lazyload alt="image-20230804165258732"></p>
+<ul>
+<li><img src="/../post_imgs/MIT6.S081/image-20230804165636678.png" srcset="/img/loading.gif" lazyload alt="image-20230804165636678"></li>
+</ul>
+<h5 id="OS与设备程序交互"><a href="#OS与设备程序交互" class="headerlink" title="OS与设备程序交互"></a>OS与设备程序交互</h5><p><img src="/../post_imgs/MIT6.S081/image-20230804165904243.png" srcset="/img/loading.gif" lazyload alt="image-20230804165904243"></p>
+<h6 id="面向外设"><a href="#面向外设" class="headerlink" title="面向外设"></a>面向外设</h6><ul>
+<li>IO和中断</li>
+</ul>
+<h6 id="面向程序"><a href="#面向程序" class="headerlink" title="面向程序"></a>面向程序</h6><ul>
+<li><p>系统调用和异常</p>
+<p>  <img src="/../post_imgs/MIT6.S081/image-20230804170502490.png" srcset="/img/loading.gif" lazyload alt="image-20230804170502490"></p>
+</li>
+</ul>
+<h6 id="中断"><a href="#中断" class="headerlink" title="中断"></a>中断</h6><ul>
+<li><img src="/../post_imgs/MIT6.S081/image-20230804171728933.png" srcset="/img/loading.gif" lazyload alt="image-20230804171728933"></li>
+</ul>
+<h3 id="内存管理"><a href="#内存管理" class="headerlink" title="内存管理"></a>内存管理</h3><h5 id="内存分层"><a href="#内存分层" class="headerlink" title="内存分层"></a>内存分层</h5><h5 id=""><a href="#" class="headerlink" title=""></a><img src="/../post_imgs/MIT6.S081/image-20230804173117563.png" srcset="/img/loading.gif" lazyload alt="image-20230804173117563"></h5><h5 id="内存需要实现的的功能"><a href="#内存需要实现的的功能" class="headerlink" title="内存需要实现的的功能"></a>内存需要实现的的功能</h5><ul>
+<li>抽象，用户程序不在乎内存具体</li>
+<li>隔离，程序不干扰</li>
+<li>共享，程序之间的沟通</li>
+<li>虚拟化，实现内存和硬盘的交换，获得更大的内存，会程序无感</li>
+</ul>
+<h5 id="连续内存分配"><a href="#连续内存分配" class="headerlink" title="连续内存分配"></a>连续内存分配</h5><ul>
+<li>最先分配，按地址排序查找，第一个满足的就分配空间块<ul>
+<li>会导致外部碎片</li>
+</ul>
+</li>
+<li>最佳分配，按排序从小到大查找<ul>
+<li>导致外部碎片，但是产生影响最小</li>
+<li>需要进行大小先排序</li>
+</ul>
+</li>
+<li>最差分配，根据大小排序，选择最大的分配</li>
+</ul>
+<h6 id="碎片解决"><a href="#碎片解决" class="headerlink" title="碎片解决"></a>碎片解决</h6><ul>
+<li>压缩碎片，发生在内存，需要有较多空余的内存，内存拷贝开销大以及不能在程序运行时候压缩</li>
+<li>换入换出，发生在内存和硬盘</li>
+</ul>
+<h5 id="非连续内存分配：软件和硬件一起实现"><a href="#非连续内存分配：软件和硬件一起实现" class="headerlink" title="非连续内存分配：软件和硬件一起实现"></a>非连续内存分配：软件和硬件一起实现</h5><h6 id="分段机制"><a href="#分段机制" class="headerlink" title="分段机制"></a>分段机制</h6><ul>
+<li>程序是由一段段代码组成的，进而把不同程序段分散到不同的物理地址</li>
+<li><img src="/../post_imgs/MIT6.S081/image-20230805111441288.png" srcset="/img/loading.gif" lazyload alt="image-20230805111441288"></li>
+<li>映射机制</li>
+<li><img src="/../post_imgs/MIT6.S081/image-20230805111900425.png" srcset="/img/loading.gif" lazyload alt="image-20230805111900425"></li>
+</ul>
+<p>程序分段，段地址分为段号和偏移，首先去查询段表，得到对应段号的物理起始地址和段长限制，MMU对段地址的偏移进行计算，判断是否越界，没有越界就可以访问物理地址</p>
+<h6 id="分页机制：用的较多"><a href="#分页机制：用的较多" class="headerlink" title="分页机制：用的较多"></a>分页机制：用的较多</h6><p><img src="/../post_imgs/MIT6.S081/image-20230805112344620.png" srcset="/img/loading.gif" lazyload alt="image-20230805112344620"></p>
+<ul>
+<li><img src="/../post_imgs/MIT6.S081/image-20230805120618255.png" srcset="/img/loading.gif" lazyload alt="image-20230805120618255"></li>
+<li>物理分帧，逻辑分页，帧大小和页大小对应，页号和帧号大小不一定对应，页号查页表找到帧号，然后进行计算加上偏移，得到物理地址</li>
+<li>为什么页的大小都是2*n：因为2的N次幂方计算，在硬件上实现地址转换</li>
+</ul>
+<h6 id="页表优化"><a href="#页表优化" class="headerlink" title="页表优化"></a>页表优化</h6><ul>
+<li><p>&#x3D;&#x3D;快表缓存&#x3D;&#x3D;：CPU内部有个MMU内存管理单元，MMU维护了一个TLB，缓存最近访问的页帧转换项，这样子先去TLB，可以减少内存访问次数</p>
+</li>
+<li><p>根据程序局部性原理，程序在执行过程中访问的内存位置或者临近位置被再次访问的可能性很大，我们可以把近期访问的页表项缓存</p>
+</li>
+<li><p>&#x3D;&#x3D;多级页表&#x3D;&#x3D;</p>
+</li>
+</ul>
+<p><img src="/../post_imgs/MIT6.S081/image-20230805144410752.png" srcset="/img/loading.gif" lazyload alt="image-20230805144410752"></p>
+<h6 id="反置页表"><a href="#反置页表" class="headerlink" title="反置页表"></a>反置页表</h6><ul>
+<li>通过页帧号找到逻辑页号，和物理内存关联<ul>
+<li>缺点，要找到对应的页号，需要进行遍历寄存器</li>
+</ul>
+</li>
+</ul>
+<h6 id="段页存储"><a href="#段页存储" class="headerlink" title="段页存储"></a>段页存储</h6><ul>
+<li><img src="/../post_imgs/MIT6.S081/image-20230805150006286.png" srcset="/img/loading.gif" lazyload alt="image-20230805150006286"></li>
+<li>方便实现共享内存<ul>
+<li>&#x3D;&#x3D;通过指向相同的页表，实现不同段之间的共享&#x3D;&#x3D;</li>
+</ul>
+</li>
+</ul>
+<h5 id="虚拟内存"><a href="#虚拟内存" class="headerlink" title="虚拟内存"></a>虚拟内存</h5><h6 id="为什么需要虚拟内存"><a href="#为什么需要虚拟内存" class="headerlink" title="为什么需要虚拟内存"></a>为什么需要虚拟内存</h6><ul>
+<li>内存不够使用，成本就高</li>
+</ul>
+<h6 id="覆盖技术"><a href="#覆盖技术" class="headerlink" title="覆盖技术"></a>覆盖技术</h6><ul>
+<li>把没有相互调用的模块放到同一个分区，这样子他们就可以分时共享内存</li>
+</ul>
+<h6 id="交换"><a href="#交换" class="headerlink" title="交换"></a>交换</h6><ul>
+<li><img src="/../post_imgs/MIT6.S081/image-20230806110311583.png" srcset="/img/loading.gif" lazyload alt="image-20230806110311583"></li>
+</ul>
+<h6 id="覆盖和交换的区别"><a href="#覆盖和交换的区别" class="headerlink" title="覆盖和交换的区别"></a>覆盖和交换的区别</h6><ul>
+<li><img src="/../post_imgs/MIT6.S081/image-20230806110430762.png" srcset="/img/loading.gif" lazyload alt="image-20230806110430762"></li>
+</ul>
+<h6 id="虚拟内存-1"><a href="#虚拟内存-1" class="headerlink" title="虚拟内存"></a>虚拟内存</h6><ul>
+<li>利用局部性原理，程序的指令和数据在被访问之后后面大概率还会被再次访问或者当前指令被访问其附近的指令大概率也会被访问</li>
+<li><img src="/../post_imgs/MIT6.S081/image-20230806111005583.png" srcset="/img/loading.gif" lazyload alt="image-20230806111005583"></li>
+<li><img src="/../post_imgs/MIT6.S081/image-20230806111108173.png" srcset="/img/loading.gif" lazyload alt="image-20230806111108173"></li>
+<li><img src="/../post_imgs/MIT6.S081/image-20230806111605711.png" srcset="/img/loading.gif" lazyload alt="image-20230806111605711"></li>
+</ul>
+<h6 id="常见页面置换算法"><a href="#常见页面置换算法" class="headerlink" title="常见页面置换算法"></a>常见页面置换算法</h6><h6 id="局部页面置换算法"><a href="#局部页面置换算法" class="headerlink" title="局部页面置换算法"></a>局部页面置换算法</h6><ul>
+<li><p>&#x3D;&#x3D;最优置换算法&#x3D;&#x3D;</p>
+<ul>
+<li>置换在未来时间最长时间不被访问的页面</li>
+<li><img src="/../post_imgs/MIT6.S081/image-20230806112203484.png" srcset="/img/loading.gif" lazyload alt="image-20230806112203484"></li>
+<li>无法实现，过于理想</li>
+</ul>
+</li>
+<li><p>&#x3D;&#x3D;先进先出算法&#x3D;&#x3D;</p>
+<ul>
+<li>选择在内存中驻留时间最长的进行置换</li>
+<li>最先进来的时间最长，置换</li>
+<li>实现简单，可能会导致缺页次数增加</li>
+<li><img src="/../post_imgs/MIT6.S081/image-20230806112944667.png" srcset="/img/loading.gif" lazyload alt="image-20230806112944667"></li>
+</ul>
+</li>
+<li><p>&#x3D;&#x3D;最长时间没有被引用（去近似最佳置算法）LRU&#x3D;&#x3D;</p>
+<ul>
+<li><img src="/../post_imgs/MIT6.S081/image-20230806113050691.png" srcset="/img/loading.gif" lazyload alt="image-20230806113050691"></li>
+<li><img src="/../post_imgs/MIT6.S081/image-20230806113144685.png" srcset="/img/loading.gif" lazyload alt="image-20230806113144685"></li>
+</ul>
+<p>  <img src="/../post_imgs/MIT6.S081/image-20230806113444551.png" srcset="/img/loading.gif" lazyload alt="image-20230806113444551"></p>
+</li>
+</ul>
+<p><img src="/../post_imgs/MIT6.S081/image-20230806113436558.png" srcset="/img/loading.gif" lazyload alt="image-20230806113436558"></p>
+<ul>
+<li><p>CLOCK算法（FIFO和LRU折中）</p>
+<ul>
+<li><img src="/../post_imgs/MIT6.S081/image-20230806123351956.png" srcset="/img/loading.gif" lazyload alt="image-20230806123351956"></li>
+<li><img src="/../post_imgs/MIT6.S081/image-20230806123408378.png" srcset="/img/loading.gif" lazyload alt="image-20230806123408378"></li>
+</ul>
+</li>
+<li><p><img src="/../post_imgs/MIT6.S081/image-20230806123829471.png" srcset="/img/loading.gif" lazyload alt="image-20230806123829471"></p>
+<ul>
+<li>维护一个页面统计次数，每次访问统计➕，缺页置换选择次数最少的</li>
+<li>有个缺点，随着时间流逝，换区域了，那些高频访问的被置换出去几率低：可以在发生时间中断的时候，那些高频次的页面次数&#x2F;2</li>
+</ul>
+</li>
+<li><p><img src="/../post_imgs/MIT6.S081/image-20230806124608162.png" srcset="/img/loading.gif" lazyload alt="image-20230806124608162"></p>
+</li>
+</ul>
+<p>FIFO会有Belady现象</p>
+<h3 id="进程管理"><a href="#进程管理" class="headerlink" title="进程管理"></a>进程管理</h3><h4 id="进程基础"><a href="#进程基础" class="headerlink" title="进程基础"></a>进程基础</h4><h5 id="什么是进程？"><a href="#什么是进程？" class="headerlink" title="什么是进程？"></a>什么是进程？</h5><ul>
+<li>一个程序在一个数据集合上的一次动态执行过程</li>
+<li>程序是静态的，进程是程序的动态执行；进程有用户态和和心态，程序是静态代码集合</li>
+<li><img src="/../post_imgs/MIT6.S081/image-20230808101310155.png" srcset="/img/loading.gif" lazyload alt="image-20230808101310155"></li>
+</ul>
+<h5 id="x3D-x3D-进程的组成-x3D-x3D"><a href="#x3D-x3D-进程的组成-x3D-x3D" class="headerlink" title="&#x3D;&#x3D;进程的组成&#x3D;&#x3D;"></a>&#x3D;&#x3D;进程的组成&#x3D;&#x3D;</h5><ul>
+<li>代码段</li>
+<li>数据段</li>
+<li>程序计数器，指向下一条要执行的指令</li>
+<li>寄存器保存堆栈信息</li>
+<li>使用的系统资源，比如内存，磁盘等</li>
+</ul>
+<h6 id="PCB"><a href="#PCB" class="headerlink" title="PCB"></a>PCB</h6><ul>
+<li><p>标识信息，PID</p>
+</li>
+<li><p>CPU信息保存区</p>
+<ul>
+<li>用户可见寄存器：用户程序可使用</li>
+<li>PC和PSW（程序状态字）</li>
+<li>栈指针</li>
+</ul>
+</li>
+<li><p>控制信息</p>
+</li>
+<li><p><img src="/../post_imgs/MIT6.S081/image-20230808102128784.png" srcset="/img/loading.gif" lazyload alt="image-20230808102128784"></p>
+<ul>
+<li>调度信息，通信信息，存储信息</li>
+</ul>
+</li>
+<li><p><img src="/../post_imgs/MIT6.S081/image-20230808102325865.png" srcset="/img/loading.gif" lazyload alt="image-20230808102325865"></p>
+</li>
+</ul>
+<h6 id="进程状态变化图片"><a href="#进程状态变化图片" class="headerlink" title="进程状态变化图片"></a>进程状态变化图片</h6><ul>
+<li><img src="/../post_imgs/MIT6.S081/image-20230808102546156.png" srcset="/img/loading.gif" lazyload alt="image-20230808102546156"></li>
+</ul>
+<h6 id="进程挂起"><a href="#进程挂起" class="headerlink" title="进程挂起"></a>进程挂起</h6><ul>
+<li><img src="/../post_imgs/MIT6.S081/image-20230808102655166.png" srcset="/img/loading.gif" lazyload alt="image-20230808102655166"></li>
+</ul>
+<p>在挂起队列里面，根据不同的状态，用不同的队列组织</p>
+<h4 id="线程管理"><a href="#线程管理" class="headerlink" title="线程管理"></a>线程管理</h4><h6 id="什么是线程"><a href="#什么是线程" class="headerlink" title="什么是线程"></a>什么是线程</h6><ul>
+<li>&#x3D;&#x3D;线程是进程当中的一条执行流程&#x3D;&#x3D;</li>
+</ul>
+<h6 id="线程和进程的区别"><a href="#线程和进程的区别" class="headerlink" title="线程和进程的区别"></a>线程和进程的区别</h6><ul>
+<li>&#x3D;&#x3D;进程是资源分配的单位，是一个资源平台，线程负责代码在资源上的一次执行流程；&#x3D;&#x3D;</li>
+<li><img src="/../post_imgs/MIT6.S081/image-20230808105411639.png" srcset="/img/loading.gif" lazyload alt="image-20230808105411639"></li>
+</ul>
+<h6 id="用户线程"><a href="#用户线程" class="headerlink" title="用户线程"></a>用户线程</h6><ul>
+<li>在用户空间，自定义实现库函数了来实现多线程，但是在内核看来，仍是单进程</li>
+<li>好处：线程切换不需要内核介入，开销少</li>
+<li>坏处：当线程发起系统调用而阻塞的时候，整个进程都会进入等待状态；其他进程的线程只能等待当前进程的线程主动释放CPU</li>
+</ul>
+<h6 id="内核线程"><a href="#内核线程" class="headerlink" title="内核线程"></a>内核线程</h6><ul>
+<li><p>进程通过系统调用实现的线程机制，由内核实现线程的创建，管理和终止</p>
+</li>
+<li><p><img src="/../post_imgs/MIT6.S081/image-20230808111239947.png" srcset="/img/loading.gif" lazyload alt="image-20230808111239947"></p>
+</li>
+</ul>
+<h5 id="进程调度算法"><a href="#进程调度算法" class="headerlink" title="进程调度算法"></a>进程调度算法</h5><ul>
+<li>先来先服务，对短作业不利于</li>
+<li>短作业优先，对长作业不利于</li>
+<li>高相应比优先<ul>
+<li><img src="/../post_imgs/MIT6.S081/image-20230808112548674.png" srcset="/img/loading.gif" lazyload alt="image-20230808112548674"></li>
+<li>过于理想化，不知道要求服务时间是多少</li>
+</ul>
+</li>
+<li>RR时间片轮转</li>
+<li>多级反馈队列<ul>
+<li>有多个队列从上到下，越上面，时间越短，优先级越高，先执行上面的队列</li>
+<li><img src="/../post_imgs/MIT6.S081/image-20230808112738360.png" srcset="/img/loading.gif" lazyload alt="image-20230808112738360"></li>
+</ul>
+</li>
+<li></li>
+</ul>
+<h3 id="死锁"><a href="#死锁" class="headerlink" title="死锁"></a>死锁</h3><h5 id="死锁条件"><a href="#死锁条件" class="headerlink" title="死锁条件"></a>死锁条件</h5><p><img src="/../post_imgs/MIT6.S081/image-20230809110127669.png" srcset="/img/loading.gif" lazyload alt="image-20230809110127669"></p>
+<h5 id="死锁处理办法"><a href="#死锁处理办法" class="headerlink" title="死锁处理办法"></a>死锁处理办法</h5><h6 id="死锁预防"><a href="#死锁预防" class="headerlink" title="死锁预防"></a>死锁预防</h6><ul>
+<li>严格限制死锁的产生，破坏死锁四个条件之一<ul>
+<li>互斥：只占有非共享资源</li>
+<li>占有且等待：一次性分配资源完备或者空资源申请</li>
+<li>非抢占：允许抢占资源</li>
+<li>循环等待：资源排序，按照顺序申请，比如说金字塔</li>
+</ul>
+</li>
+</ul>
+<h6 id="死锁避免"><a href="#死锁避免" class="headerlink" title="死锁避免"></a>死锁避免</h6><ul>
+<li>在运行过程中判断资源申请是否可能会出现死锁</li>
+<li>银行家算法</li>
+</ul>
+<h6 id="死锁检测和恢复"><a href="#死锁检测和恢复" class="headerlink" title="死锁检测和恢复"></a>死锁检测和恢复</h6><ul>
+<li>运行进入死锁状态，如果检测发生死锁，就进行死锁恢复。没发生就继续进行</li>
+</ul>
+<h3 id="进程间通信IPC"><a href="#进程间通信IPC" class="headerlink" title="进程间通信IPC"></a>进程间通信IPC</h3><h6 id="分类"><a href="#分类" class="headerlink" title="分类"></a>分类</h6><ul>
+<li>直接和间接（通过内核）</li>
+<li>阻塞和非阻塞（非阻塞就是send完毕，直接返回，不等待确认，不去看有没有完成发送和接受）</li>
+<li>缓冲和非缓冲<ul>
+<li>解决双方速率不匹配，提高速率</li>
+<li>缓冲容量有限，通常是这样</li>
+</ul>
+</li>
+</ul>
+<h4 id="常用IPC实现"><a href="#常用IPC实现" class="headerlink" title="常用IPC实现"></a>常用IPC实现</h4><ul>
+<li>信号</li>
+<li>管道</li>
+<li>消息队列</li>
+<li>共享内存</li>
+</ul>
+<h5 id="信号"><a href="#信号" class="headerlink" title="信号"></a>信号</h5><ul>
+<li>进程之间通过软中断实现的的通知和处理机制</li>
+<li>信号只是一种类型，用来做快速响应</li>
+<li>举例子<ul>
+<li>比如说Ctrl+C，发出软中断信号，正在执行的程序停止运行，对这种信号的处理和响应是由OS实现的</li>
+<li>程序也可以自己实现相应的信号处理机制</li>
+<li>有时候会忽略，比如说在登陆界面，Ctrl+C是会忽略</li>
+</ul>
+</li>
+<li>过程</li>
+<li><img src="/../post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/image-20230810112725643.png" srcset="/img/loading.gif" lazyload alt="image-20230810112725643"></li>
+</ul>
+<p>&#x3D;&#x3D;注册针对某一信号的handles，然后通过系统调用交给OS，OS在产生相应信号之后返回；返回涉及指令的修改，比如说系统调用后的下一条执行是跳转到信号函数的入口&#x3D;&#x3D;</p>
+<h5 id="管道"><a href="#管道" class="headerlink" title="管道"></a>管道</h5><ul>
+<li><img src="/../post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/image-20230810122221456.png" srcset="/img/loading.gif" lazyload alt="image-20230810122221456"></li>
+<li>管道是内核中的一块缓冲区，管道有读端和写端，ls的输出设置为管道的写端，more的输入设置为管道的读取端</li>
+<li>0表示输入，1表示标准输出，2表示错误输出</li>
+<li>shell是父进程，ls和more是子进程的命令，子进程结束，管跟着结束</li>
+</ul>
+<h6 id="匿名管道"><a href="#匿名管道" class="headerlink" title="匿名管道"></a>匿名管道</h6><ul>
+<li><strong>匿名管道</strong>顾名思义，它没有名字标识，匿名管道是特殊文件只存在于内存，没有存在于文件系统中，shell 命&#x3D;&#x3D;令中的「<code>|</code>」竖线就是匿名管道&#x3D;&#x3D;，通信的数据是<strong>无格式的流并且大小受限</strong>，通信的方式是<strong>单向</strong>的，数据只能在一个方向上流动，如果要双向通信，需要创建两个管道，再来&#x3D;&#x3D;<strong>匿名管道是只能用于存在父子关系的进程间通信</strong>，匿名管道的生命周期随着进程创建而建立，随着进程终止而消失&#x3D;&#x3D;</li>
+</ul>
+<h6 id="命名管道"><a href="#命名管道" class="headerlink" title="命名管道"></a>命名管道</h6><ul>
+<li><img src="/../post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/image-20230810123540258.png" srcset="/img/loading.gif" lazyload alt="image-20230810123540258"></li>
+</ul>
+<h5 id="消息队列"><a href="#消息队列" class="headerlink" title="消息队列"></a>消息队列</h5><ul>
+<li>是保存在内核当中的消息链表，链表节点是自定义的消息体，比如有有自定义的数据类型，&#x3D;&#x3D;克服了管道只能传输无序字节流的缺点&#x3D;&#x3D;</li>
+<li>&#x3D;&#x3D;消息队列克服了管道随着进程的消亡而不能使用的缺点&#x3D;&#x3D;</li>
+<li>消息队列通信没有那么及时，因为数据的读写都要涉及用户空间到内核空间的数据拷贝过程</li>
+</ul>
+<h5 id="共享内存"><a href="#共享内存" class="headerlink" title="共享内存"></a>共享内存</h5><ul>
+<li>&#x3D;&#x3D;解决了消息队列当中的拷贝问题&#x3D;&#x3D;</li>
+<li>分配一个共享空间，每个进程都可以访问，进程的页表项映射到同一块物理内存；但是需要自己实现互斥访问，比如说信号量实现</li>
+</ul>
+<h3 id="文件系统"><a href="#文件系统" class="headerlink" title="文件系统"></a>文件系统</h3><h5 id="-1"><a href="#-1" class="headerlink" title=""></a></h5><ul>
+<li>在Linux下一切皆文件，文件由索引节点和目录项组成</li>
+<li><img src="/../post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/image-20230811163314679.png" srcset="/img/loading.gif" lazyload alt="image-20230811163314679"></li>
+</ul>
+<p><img src="/../post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%9B%AE%E5%BD%95%E9%A1%B9%E5%92%8C%E7%B4%A2%E5%BC%95%E5%85%B3%E7%B3%BB%E5%9B%BE.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<h6 id="硬连接和软连接的区别"><a href="#硬连接和软连接的区别" class="headerlink" title="硬连接和软连接的区别"></a>硬连接和软连接的区别</h6><ul>
+<li>软软连接是指向新的索引节点，新的索引节点存放的是路径位置</li>
+<li>硬连接指向的是真实的索引节点，是在磁盘上的位置</li>
+</ul>
+<p><img src="/../post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/image-20230811163448695.png" srcset="/img/loading.gif" lazyload alt="image-20230811163448695"></p>
+<p><img src="/../post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/image-20230811163627471.png" srcset="/img/loading.gif" lazyload alt="image-20230811163627471"></p>
+<h6 id="进程写文件时，进程发生了崩溃，已写入的数据会丢失吗？"><a href="#进程写文件时，进程发生了崩溃，已写入的数据会丢失吗？" class="headerlink" title="进程写文件时，进程发生了崩溃，已写入的数据会丢失吗？"></a>进程写文件时，进程发生了崩溃，已写入的数据会丢失吗？</h6><ul>
+<li>进程崩溃不会，但是在持久化之前OS崩溃会丢失</li>
+</ul>
+<p><img src="/../post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/1541c881598f554920355f0a3c5780fd.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="/../post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/image-20230811163750518.png" srcset="/img/loading.gif" lazyload alt="image-20230811163750518"></p>
+<h3 id="设备管理"><a href="#设备管理" class="headerlink" title="设备管理"></a>设备管理</h3><h6 id="键盘敲入字母时，期间发生了什么？"><a href="#键盘敲入字母时，期间发生了什么？" class="headerlink" title="键盘敲入字母时，期间发生了什么？"></a>键盘敲入字母时，期间发生了什么？</h6><ul>
+<li><img src="/../post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/CPU%20%E7%A1%AC%E4%BB%B6%E6%80%BB%E7%BA%BF%E5%9B%BE.png" srcset="/img/loading.gif" lazyload alt="CPU 的硬件架构图"></li>
+</ul>
+<p><img src="/../post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/image-20230811164322187.png" srcset="/img/loading.gif" lazyload alt="image-20230811164322187"></p>
+<h6 id="磁盘调度算法"><a href="#磁盘调度算法" class="headerlink" title="磁盘调度算法"></a>磁盘调度算法</h6><ul>
+<li><a target="_blank" rel="noopener" href="https://xiaolincoding.com/os/5_schedule/schedule.html#%E7%A3%81%E7%9B%98%E8%B0%83%E5%BA%A6%E7%AE%97%E6%B3%95">点击这里</a></li>
+</ul>
+<p><img src="/../post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/image-20230811164756208.png" srcset="/img/loading.gif" lazyload alt="image-20230811164756208"></p>
+<ul>
+<li><p>先来先服务算法</p>
+</li>
+<li><p>最短寻道时间算法</p>
+</li>
+<li><p>电梯算法：就是电梯扫描，比如电梯从当前位置移动到顶层，处理期间的请求，然后再从顶层移动到底层，处理期间的请求</p>
+</li>
+<li><p>循环扫描：电梯移到底层立马移到底层，返回途中不处理请求</p>
+</li>
+<li><p>LOOK算法：电梯移动到需要处理的最高楼层，不会移动到顶层，&#x3D;&#x3D;然后返回并处理&#x3D;&#x3D;</p>
+</li>
+<li><p>C-LOOk算法：电梯移动到需要处理的最高楼层，不会移动到顶层，&#x3D;&#x3D;然后立即返回需要处理的最低楼层，返回不做请求处理&#x3D;&#x3D;</p>
+</li>
+</ul>
+<h3 id="网络系统"><a href="#网络系统" class="headerlink" title="网络系统"></a>网络系统</h3><h6 id="DMA流程"><a href="#DMA流程" class="headerlink" title="DMA流程"></a>DMA流程</h6><p><img src="/../post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/DRM%20I_O%20%E8%BF%87%E7%A8%8B.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<ul>
+<li>DMA流程</li>
+<li>程序发起read系统调用，cpu从用户转化为内核态，CPU向DMA控制器发起IO请求，DMA控制器向磁盘发起IO请求，磁盘把数据放入磁盘控制器缓冲区，完成后通知DMA控制器，DMA控制器把磁盘控制器上的缓冲区数据拷贝到内核缓冲区，然后信号通知CPU，CPU把数据从内核拷贝到用户缓冲区，最后就是系统调用返回，用户态到内核切换</li>
+<li>可以看出，一次read系统调用，四次拷贝，两次切换，十分消耗时间</li>
+</ul>
+<h6 id="传统文件传输"><a href="#传统文件传输" class="headerlink" title="传统文件传输"></a>传统文件传输</h6><ul>
+<li><img src="https://cdn.xiaolincoding.com/gh/xiaolincoder/ImageHost2/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E9%9B%B6%E6%8B%B7%E8%B4%9D/%E4%BC%A0%E7%BB%9F%E6%96%87%E4%BB%B6%E4%BC%A0%E8%BE%93.png" srcset="/img/loading.gif" lazyload alt="img"></li>
+</ul>
+<h5 id="零拷贝"><a href="#零拷贝" class="headerlink" title="零拷贝"></a>零拷贝</h5><ul>
+<li>减少网络数据传输当中的拷贝次数</li>
+</ul>
+<h6 id="sendfile实现0⃣️拷贝"><a href="#sendfile实现0⃣️拷贝" class="headerlink" title="sendfile实现0⃣️拷贝"></a>sendfile实现0⃣️拷贝</h6><ul>
+<li><img src="/../post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/senfile-%E9%9B%B6%E6%8B%B7%E8%B4%9D.png" srcset="/img/loading.gif" lazyload alt="img"></li>
+<li></li>
+</ul>
+<p><img src="/../post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/image-20230814095919616.png" srcset="/img/loading.gif" lazyload alt="image-20230814095919616"></p>
+<h6 id="PageCache"><a href="#PageCache" class="headerlink" title="PageCache"></a>PageCache</h6><p><img src="/../post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/image-20230814100220802.png" srcset="/img/loading.gif" lazyload alt="image-20230814100220802"></p>
+<h5 id="IO多路复用：进程可以通过一个系统调用函数从内核中获取多个事件。"><a href="#IO多路复用：进程可以通过一个系统调用函数从内核中获取多个事件。" class="headerlink" title="IO多路复用：进程可以通过一个系统调用函数从内核中获取多个事件。"></a>IO多路复用：<strong>进程可以通过一个系统调用函数从内核中获取多个事件</strong>。</h5><h6 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h6><ul>
+<li>传统的Socket通信是一个进程或者线程处理以恶搞连接请求，当连接数增加的时候，涉及上下文切换，性能下降</li>
+</ul>
+<h6 id="select和poll"><a href="#select和poll" class="headerlink" title="select和poll"></a>select和poll</h6><p>- </p>
+<p><img src="/../post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/image-20230814100518621.png" srcset="/img/loading.gif" lazyload alt="image-20230814100518621"></p>
+<h6 id="epoll"><a href="#epoll" class="headerlink" title="epoll"></a>epoll</h6><p><img src="/../post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/epoll.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<ul>
+<li>有两种出触发器模式</li>
+<li><img src="/../post_imgs/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/image-20230814101355270.png" srcset="/img/loading.gif" lazyload alt="image-20230814101355270"></li>
+<li></li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>清华大学操作系统</div>
+      <div>http://example.com/2023/08/24/清华大学操作系统/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>czjoyit@qq.com</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年8月24日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="SA - 相同方式共享">
+                    <i class="iconfont icon-sa"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/07/08/MySQL%E7%9F%A5%E8%AF%86%E7%82%B9/" title="MySQL">
+                        <span class="hidden-mobile">MySQL</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> <div style="font-size: 0.85rem"> <span id="timeDate">载入天数...</span> <span id="times">载入时分秒...</span> <script src="/js/duration.js"></script> </div> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
